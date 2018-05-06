@@ -22,13 +22,13 @@ enron_data = pickle.load(open("../final_project/final_project_dataset.pkl", "r")
 
 print 'Size of the Enron dataset: ',len(enron_data)
 print 'Number of features for each person: ',len(enron_data['SKILLING JEFFREY K'])
+
 n = 0
 for person, features_person in enron_data.items():
     if features_person['poi'] == 1:
         n += 1
     else:
         continue
-
 print 'Number of persons of interest from the Eron data: ', n
 
 poi_df = pd.read_csv('../final_project/poi_names.txt', skiprows=[0,1], names=['poi','first_name','last_name'],sep=' ')
@@ -58,7 +58,24 @@ for person, features_person in enron_data.items():
     else:
         continue
 
-print n_salary, n_email
+print 'salaires NaN: ',n_salary
+print 'emails NaN: ', n_email
 
+n_payments = 0
+for person, features_person in enron_data.items():
+    if features_person['total_payments'] == 'NaN':
+        n_payments += 1
+    else:
+        continue
+
+print 'percentage of person with payments NaN: ', 100*n_payments/146.0, n_payments
+
+n_poi_payments = 0
+for person, features_person in enron_data.items():
+    if (features_person['total_payments'] == 'NaN') and (features_person['poi'] == 1):
+        n_poi_payments += 1
+    else:
+        continue
+print '% of POI with NaN for total payments: ', 100*n_poi_payments/146.0
 
 
