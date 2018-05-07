@@ -73,10 +73,10 @@ pred = KMeans(n_clusters=3).fit_predict(finance_features)
 
 ### rename the "name" parameter when you change the number of features
 ### so that the figure gets saved to a different file
-try:
-    Draw(pred, finance_features, poi, mark_poi=False, name="clusters.pdf", f1_name=feature_1, f2_name=feature_2)
-except NameError:
-    print "no predictions object named pred found, no clusters to plot"
+# try:
+#     Draw(pred, finance_features, poi, mark_poi=False, name="clusters.pdf", f1_name=feature_1, f2_name=feature_2)
+# except NameError:
+#     print "no predictions object named pred found, no clusters to plot"
 
 #Look for minimum if "exercised Stock options"
 def min_max(feature):
@@ -85,11 +85,17 @@ def min_max(feature):
         val=features[feature]
         if val != 'NaN':
             values.append(val)
-
-    print 'minimum '+feature, min(values)
-    print 'maximum '+feature, max(values)
+    return min(values),max(values)
 
 
-min_max('exercised_stock_options')
-min_max('salary')
+print 'exercised_stock_options: ',min_max('exercised_stock_options')
+print 'salary: ', min_max('salary')
 
+#features scaling
+from sklearn.preprocessing import MinMaxScaler
+import numpy
+scaler = MinMaxScaler()
+data_salary = numpy.array([[min_max('salary')[0]*1.0],[200000.],[min_max('salary')[1]*1.0]])
+data_stocks=numpy.array([[min_max('exercised_stock_options')[0]*1.0],[1000000.],[min_max('exercised_stock_options')[1]*1.0]])
+print scaler.fit_transform(data_salary)
+print scaler.fit_transform((data_stocks))
