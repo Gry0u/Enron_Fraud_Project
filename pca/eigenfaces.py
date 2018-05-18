@@ -37,6 +37,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 ###############################################################################
 # Download the data, if not already on disk and load it as numpy arrays
+
 lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4)
 
 # introspect the images arrays to find the shapes (for plotting)
@@ -53,6 +54,7 @@ y = lfw_people.target
 target_names = lfw_people.target_names
 n_classes = target_names.shape[0]
 
+
 print "Total dataset size:"
 print "n_samples: %d" % n_samples
 print "n_features: %d" % n_features
@@ -66,7 +68,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random
 ###############################################################################
 # Compute a PCA (eigenfaces) on the face dataset (treated as unlabeled
 # dataset): unsupervised feature extraction / dimensionality reduction
-n_components = 150
+n_components = 250
 
 print "Extracting the top %d eigenfaces from %d faces" % (n_components, X_train.shape[0])
 t0 = time()
@@ -144,3 +146,4 @@ eigenface_titles = ["eigenface %d" % i for i in range(eigenfaces.shape[0])]
 plot_gallery(eigenfaces, eigenface_titles, h, w)
 
 pl.show()
+print pca.explained_variance_ratio_[:2]
