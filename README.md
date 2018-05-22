@@ -1,4 +1,7 @@
-ud120-projects
+Enron Fraud Project
 ==============
 
-Starter project code for students taking Udacity ud120
+Includes:
+- training material from Udacity on the machine learning part of the Udacity Data Analyst Nanodegree.
+- [Final project](./final_project) about the Enron Fraud and creating a classifier to find person of interests.
+
