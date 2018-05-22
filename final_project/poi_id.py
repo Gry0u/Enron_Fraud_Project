@@ -1,22 +1,42 @@
 #!/usr/bin/python
 
 import sys
+import os
 import pickle
+import pandas as pd
+from sklearn.feature_selection import SelectKBest, chi2, f_classif
+from sklearn.cross_validation import train_test_split
+from sklearn.grid_search import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
 sys.path.append("../tools/")
-
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
+
+with open("final_project_dataset.pkl", "r") as data_file:
+    data_dict = pickle.load(data_file)
+
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
 features_list = ['poi','salary'] # You will need to use more features
-
+##I am defining a dataframe because I found it convenient/fast to get all the features names
+data_df = pd.DataFrame(data_dict)
+data_df = data_df.transpose()
+features_list=[col for col in data_df.columns if col not in ['email_address','poi']]
+features_list=['poi']+features_list
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
+
 ### Task 2: Remove outliers
+data_dict.pop('TOTAL',0)
+data_dict.pop('THE TRAVEL AGENCY IN THE PARK')
+
 ### Task 3: Create new feature(s)
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
@@ -30,6 +50,13 @@ labels, features = targetFeatureSplit(data)
 ### Note that if you want to do PCA or other multi-stage operations,
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
+
+#Define Pipeline
+selecter = SelectKBest()
+nb = GaussianNB()
+dtc = DecisionTreeClassifier()
+rdf = RandomForestClassifier()
+pipeline = Pipeline()
 
 # Provided to give you a starting point. Try a variety of classifiers.
 from sklearn.naive_bayes import GaussianNB
