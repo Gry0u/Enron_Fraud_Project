@@ -75,13 +75,14 @@ selector.fit(features, labels)
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
-def try_classifier(classifier):
+def try_classifier(classifier, print_accuracy=False):
     #create pipeline
     model = Pipeline([('select_features',selector),('classify', classifier)])
     #evaluate pipeline
     kfold = KFold(len(labels), n_folds=10, random_state=9)
     scores = cross_val_score(model, features, labels, cv=kfold)
-    print 'Accuracy of %s: %0.2f (+/- %0.2f)' % (classifier, scores.mean(), scores.std() *2)
+    if print_accuracy:
+        print 'Accuracy of %s: %0.2f (+/- %0.2f)' % (classifier, scores.mean(), scores.std() *2)
     return model
 
 
@@ -106,15 +107,12 @@ params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['g
 def tune_classifier(classifier):
     if isinstance(classifier, GaussianNB):
         parameters = dict(param_KBest)
-        print 'nb'
     elif isinstance(classifier, DecisionTreeClassifier):
         parameters = dict(param_KBest)
         parameters.update(params_dt)
-        print 'dt'
     elif isinstance(classifier, RandomForestClassifier):
         parameters = dict(param_KBest)
         parameters.update(params_rdf)
-        print 'rdf'
     else:
         'The dictionary for this dictionary hasn"t been defined!'
 
@@ -124,7 +122,7 @@ def tune_classifier(classifier):
     print "parameters:"
     pprint(parameters)
     t0 = time()
-    grid_search.fit(data.data, data.target)
+    grid_search.fit(features, labels)
     print "done in %0.3fs" % (time() - t0)
     print
     print "Best score: %0.3f" % grid_search.best_score_
