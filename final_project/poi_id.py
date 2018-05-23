@@ -5,6 +5,7 @@ import os
 import pickle
 import pandas as pd
 from pprint import pprint
+from time import time
 from sklearn.feature_selection import SelectKBest, chi2, f_classif
 from sklearn.cross_validation import train_test_split, KFold, cross_val_score
 from sklearn.grid_search import GridSearchCV
@@ -81,24 +82,60 @@ def try_classifier(classifier):
     kfold = KFold(len(labels), n_folds=10, random_state=9)
     scores = cross_val_score(model, features, labels, cv=kfold)
     print 'Accuracy of %s: %0.2f (+/- %0.2f)' % (classifier, scores.mean(), scores.std() *2)
-    return
+    return model
+
 
 classifiers = [GaussianNB(), DecisionTreeClassifier(), RandomForestClassifier()]
 for classifier in classifiers:
     try_classifier(classifier)
 
-### Task 5: Tune your classifier to achieve better than .3 precision and recall 
-### using our testing script. Check the tester.py script in the final project
-### folder for details on the evaluation method, especially the test_classifier
-### function. Because of the small size of the dataset, the script uses
-### stratified shuffle split cross validation. For more info: 
-### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
-param_KBest = {'selector__score_func':[f_classif, chi2],'selector__k':[3,4,5,6,7,8,9,10]}
-params_dt = {'classify__criterion':['gini', 'entropy'],'classify__splitter':['best', 'random'], 'classify__min_samples_split':[2,3,4,5,10]}
-params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['gini', 'entropy'], 'classify__min_samples_split':[2,3,4,5,10]}
+# Task 5: Tune your classifier to achieve better than .3 precision and recall using our testing script.
+# Check the tester.py script in the final projectfolder for details on the evaluation method, especially the
+# test_classifier function. Because of the small size of the dataset, the script uses stratified shuffle split
+# cross validation. For more info:
+# http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
+param_KBest = {'selector__score_func':[f_classif, chi2],'selector__k':[3, 4, 5, 6, 7, 8, 9, 10]}
+params_dt = {'classify__criterion':['gini', 'entropy'],'classify__splitter':['best', 'random'],
+             'classify__min_samples_split':[2, 3, 4, 5, 10]}
+params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['gini', 'entropy'],
+              'classify__min_samples_split':[2,3,4,5,10]}
+
+#http://scikit-learn.org/stable/auto_examples/model_selection/grid_search_text_feature_extraction.html
 
 
+def tune_classifier(classifier):
+    if isinstance(classifier, GaussianNB):
+        parameters = dict(param_KBest)
+        print 'nb'
+    elif isinstance(classifier, DecisionTreeClassifier):
+        parameters = dict(param_KBest)
+        parameters.update(params_dt)
+        print 'dt'
+    elif isinstance(classifier, RandomForestClassifier):
+        parameters = dict(param_KBest)
+        parameters.update(params_rdf)
+        print 'rdf'
+    else:
+        'The dictionary for this dictionary hasn"t been defined!'
 
+    grid_search = GridSearchCV(try_classifier(classifier), parameters, n_jobs=-1, verbose=1)
+    print "Performing grid search..."
+    print "pipeline:", [name for name, _ in try_classifier(classifier).steps]
+    print "parameters:"
+    pprint(parameters)
+    t0 = time()
+    grid_search.fit(data.data, data.target)
+    print "done in %0.3fs" % (time() - t0)
+    print
+    print "Best score: %0.3f" % grid_search.best_score_
+    print "Best parameters set:"
+    best_parameters = grid_search.best_estimator_.get_params()
+    for param_name in sorted(parameters.keys()):
+        print "\t%s: %r" % (param_name, best_parameters[param_name])
+    return
+
+
+tune_classifier(DecisionTreeClassifier())
 
 # Example starting point. Try investigating other evaluation techniques!
 from sklearn.cross_validation import train_test_split
