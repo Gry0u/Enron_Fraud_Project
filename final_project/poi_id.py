@@ -4,13 +4,15 @@ import sys
 import os
 import pickle
 import pandas as pd
+from pprint import pprint
 from sklearn.feature_selection import SelectKBest, chi2, f_classif
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split, KFold, cross_val_score
 from sklearn.grid_search import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import confusion_matrix, precision_score, recall_score
 sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
@@ -41,9 +43,30 @@ data_dict.pop('THE TRAVEL AGENCY IN THE PARK')
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
+#add new features
+for person, features_person in my_dataset.items():
+    from_poi = features_person['from_poi_to_this_person']
+    to_poi = features_person['from_this_person_to_poi']
+    from_ = features_person['from_messages']
+    to_ = features_person['to_messages']
+    if from_poi == 'NaN' or from_ == 'NaN':
+        features_person['ratio_from_poi_to_this_person'] = 'NaN'
+    else:
+        features_person['ratio_from_poi_to_this_person'] = float(from_poi)/float(from_)
+
+    if to_poi == 'NaN' or to_ == 'NaN':
+        features_person['ratio_from_this_person_to_poi'] = 'NaN'
+    else:
+        features_person['ratio_from_this_person_to_poi'] = float(to_poi) / float(to_)
+
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys = True)
 labels, features = targetFeatureSplit(data)
+
+#Select best features from 21
+selector = SelectKBest()
+selector.fit(features, labels)
+#print selector.scores_
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -51,16 +74,18 @@ labels, features = targetFeatureSplit(data)
 ### you'll need to use Pipelines. For more info:
 ### http://scikit-learn.org/stable/modules/pipeline.html
 
-#Define Pipeline
-selecter = SelectKBest()
-nb = GaussianNB()
-dtc = DecisionTreeClassifier()
-rdf = RandomForestClassifier()
-pipeline = Pipeline()
+def try_classifier(classifier):
+    #create pipeline
+    model = Pipeline([('select_features',selector),('classify', classifier)])
+    #evaluate pipeline
+    kfold = KFold(len(labels), n_folds=10, random_state=9)
+    scores = cross_val_score(model, features, labels, cv=kfold)
+    print 'Accuracy of %s: %0.2f (+/- %0.2f)' % (classifier, scores.mean(), scores.std() *2)
+    return
 
-# Provided to give you a starting point. Try a variety of classifiers.
-from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
+classifiers = [GaussianNB(), DecisionTreeClassifier(), RandomForestClassifier()]
+for classifier in classifiers:
+    try_classifier(classifier)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -68,6 +93,12 @@ clf = GaussianNB()
 ### function. Because of the small size of the dataset, the script uses
 ### stratified shuffle split cross validation. For more info: 
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
+param_KBest = {'selector__score_func':[f_classif, chi2],'selector__k':[3,4,5,6,7,8,9,10]}
+params_dt = {'classify__criterion':['gini', 'entropy'],'classify__splitter':['best', 'random'], 'classify__min_samples_split':[2,3,4,5,10]}
+params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['gini', 'entropy'], 'classify__min_samples_split':[2,3,4,5,10]}
+
+
+
 
 # Example starting point. Try investigating other evaluation techniques!
 from sklearn.cross_validation import train_test_split
