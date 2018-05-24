@@ -30,7 +30,7 @@ features_list = ['poi','salary'] # You will need to use more features
 data_df = pd.DataFrame(data_dict)
 data_df = data_df.transpose()
 features_name_list=[col for col in data_df.columns if col not in ['email_address','poi']]
-features_name_list=['poi']+features_list
+features_name_list=['poi']+features_name_list
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
@@ -66,15 +66,21 @@ for person, features_person in my_dataset.iteritems():
     if features_person['restricted_stock_deferred'] != 'NaN':
         features_person['restricted_stock_deferred'] = abs(features_person['restricted_stock_deferred'])
 
-#visualize one data point and check order of features in order to know later on which array of the
-#features ndarray corresponds to which feature
-#pprint(my_dataset['ALLEN PHILLIP K'])
+#visualize one data point:
+pprint(my_dataset['ALLEN PHILLIP K'])
+print
 
+features_name_list = features_name_list + ['ratio_from_this_person_to_poi', 'ratio_from_poi_to_this_person']
+#check order of features to be able to identify them when they will be stored in a ndarray
+print'features:'
+pprint(sorted([feature for feature in features_name_list if feature!='poi']))
+print
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_name_list, sort_keys=True)
 labels, features = targetFeatureSplit(data)
 
-#Select best features from 21
+#print 'Number of features: ', len(features[0])
+#Select best features from 19
 selector = SelectKBest()
 selector.fit(features, labels)
 #print selector.scores_
