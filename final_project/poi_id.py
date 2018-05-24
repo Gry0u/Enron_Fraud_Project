@@ -66,15 +66,27 @@ for person, features_person in my_dataset.iteritems():
     if features_person['restricted_stock_deferred'] != 'NaN':
         features_person['restricted_stock_deferred'] = abs(features_person['restricted_stock_deferred'])
 
-#visualize one data point:
-pprint(my_dataset['ALLEN PHILLIP K'])
-print
-
+#add created features to the features list
 features_name_list = features_name_list + ['ratio_from_this_person_to_poi', 'ratio_from_poi_to_this_person']
-#check order of features to be able to identify them when they will be stored in a ndarray
-print'features:'
-pprint(sorted([feature for feature in features_name_list if feature!='poi']))
-print
+
+
+def dataset_info(person=None, list_features=True, number_features=True):
+    if type(person) == str:
+        #visualize one data point:
+        pprint(my_dataset[person])
+        print
+    if list_features:
+        # print sorted features to be able to identify them when they will be stored in a ndarray
+        print'features:'
+        pprint(sorted([feature for feature in features_name_list if feature != 'poi']))
+        print
+    if number_features:
+        print 'number of features:', len([feature for feature in features_name_list if feature != 'poi'])
+    return
+
+
+#dataset_info()
+
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_name_list, sort_keys=True)
 labels, features = targetFeatureSplit(data)
