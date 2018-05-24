@@ -29,8 +29,8 @@ features_list = ['poi','salary'] # You will need to use more features
 ##I am defining a dataframe because I found it convenient/fast to get all the features names
 data_df = pd.DataFrame(data_dict)
 data_df = data_df.transpose()
-features_list=[col for col in data_df.columns if col not in ['email_address','poi']]
-features_list=['poi']+features_list
+features_name_list=[col for col in data_df.columns if col not in ['email_address','poi']]
+features_name_list=['poi']+features_list
 ### Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
@@ -44,24 +44,34 @@ data_dict.pop('THE TRAVEL AGENCY IN THE PARK')
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
-#add new features
-for person, features_person in my_dataset.items():
+#add new features & convert negative values to positive
+for person, features_person in my_dataset.iteritems():
     from_poi = features_person['from_poi_to_this_person']
     to_poi = features_person['from_this_person_to_poi']
     from_ = features_person['from_messages']
     to_ = features_person['to_messages']
+    #deferred_income = features_person['deferred_income']
+    #deferred_stock = features_person['restricted_stock_deferred']
     if from_poi == 'NaN' or from_ == 'NaN':
         features_person['ratio_from_poi_to_this_person'] = 'NaN'
     else:
         features_person['ratio_from_poi_to_this_person'] = float(from_poi)/float(from_)
-
     if to_poi == 'NaN' or to_ == 'NaN':
         features_person['ratio_from_this_person_to_poi'] = 'NaN'
     else:
         features_person['ratio_from_this_person_to_poi'] = float(to_poi) / float(to_)
+    if features_person['deferred_income'] != 'NaN':
+        features_person['deferred_income'] = abs(features_person['deferred_income'])
+       # print person, deferred_income
+    if features_person['restricted_stock_deferred'] != 'NaN':
+        features_person['restricted_stock_deferred'] = abs(features_person['restricted_stock_deferred'])
+
+#visualize one data point and check order of features in order to know later on which array of the
+#features ndarray corresponds to which feature
+#pprint(my_dataset['ALLEN PHILLIP K'])
 
 ### Extract features and labels from dataset for local testing
-data = featureFormat(my_dataset, features_list, sort_keys = True)
+data = featureFormat(my_dataset, features_name_list, sort_keys=True)
 labels, features = targetFeatureSplit(data)
 
 #Select best features from 21
@@ -87,24 +97,27 @@ def try_classifier(classifier, print_accuracy=False):
 
 
 classifiers = [GaussianNB(), DecisionTreeClassifier(), RandomForestClassifier()]
-for classifier in classifiers:
-    try_classifier(classifier)
+#for classifier in classifiers:
+    #try_classifier(classifier)
+
 
 # Task 5: Tune your classifier to achieve better than .3 precision and recall using our testing script.
 # Check the tester.py script in the final projectfolder for details on the evaluation method, especially the
 # test_classifier function. Because of the small size of the dataset, the script uses stratified shuffle split
 # cross validation. For more info:
 # http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
-param_KBest = {'selector__score_func':[f_classif, chi2],'selector__k':[3, 4, 5, 6, 7, 8, 9, 10]}
+param_KBest = {'select_features__score_func':[f_classif, chi2],'select_features__k':[3, 4, 5, 6, 7, 8, 9, 10]}
 params_dt = {'classify__criterion':['gini', 'entropy'],'classify__splitter':['best', 'random'],
              'classify__min_samples_split':[2, 3, 4, 5, 10]}
 params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['gini', 'entropy'],
               'classify__min_samples_split':[2,3,4,5,10]}
 
 #http://scikit-learn.org/stable/auto_examples/model_selection/grid_search_text_feature_extraction.html
+#note about cross validation in gridsearchcv: cv param: For integer/None inputs, if the estimator is a classifier and y
+#  is either binary or multiclass, StratifiedKFold is used. In all other cases, KFold is used. --> so in my case
+#StratifiedKFold is used.
 
-
-def tune_classifier(classifier):
+def tune(classifier, print_best=False):
     if isinstance(classifier, GaussianNB):
         parameters = dict(param_KBest)
     elif isinstance(classifier, DecisionTreeClassifier):
@@ -116,7 +129,7 @@ def tune_classifier(classifier):
     else:
         'The dictionary for this dictionary hasn"t been defined!'
 
-    grid_search = GridSearchCV(try_classifier(classifier), parameters, n_jobs=-1, verbose=1)
+    grid_search = GridSearchCV(try_classifier(classifier), parameters, verbose=1)
     print "Performing grid search..."
     print "pipeline:", [name for name, _ in try_classifier(classifier).steps]
     print "parameters:"
@@ -124,16 +137,17 @@ def tune_classifier(classifier):
     t0 = time()
     grid_search.fit(features, labels)
     print "done in %0.3fs" % (time() - t0)
-    print
-    print "Best score: %0.3f" % grid_search.best_score_
-    print "Best parameters set:"
-    best_parameters = grid_search.best_estimator_.get_params()
-    for param_name in sorted(parameters.keys()):
-        print "\t%s: %r" % (param_name, best_parameters[param_name])
-    return
+    if print_best:
+        print
+        print "Best score: %0.3f" % grid_search.best_score_
+        print "Best parameters set:"
+        best_parameters = grid_search.best_estimator_.get_params()
+        for param_name in sorted(parameters.keys()):
+            print "\t%s: %r" % (param_name, best_parameters[param_name])
+    return grid_search.fit(features, labels)
 
 
-tune_classifier(DecisionTreeClassifier())
+#tune(DecisionTreeClassifier())
 
 # Example starting point. Try investigating other evaluation techniques!
 from sklearn.cross_validation import train_test_split
