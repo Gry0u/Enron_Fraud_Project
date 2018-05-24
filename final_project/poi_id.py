@@ -13,7 +13,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.metrics import confusion_matrix, precision_score, recall_score
+from sklearn.metrics import classification_report
 sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
@@ -90,8 +90,7 @@ def info(details=None):
 #info('ALLEN PHILLIP K')
 #info(details='stats')
 
-features_list = info()
-
+features_list=info()
 
 # Task 2: Remove outliers
 data_dict.pop('TOTAL',0)
@@ -126,30 +125,39 @@ data = featureFormat(my_dataset, features_list, sort_keys=True)
 labels, features = targetFeatureSplit(data)
 
 #Select best features from 21
-selector = SelectKBest()
-selector.fit(features, labels)
-#print selector.scores_
 
-### Task 4: Try a varity of classifiers
-### Please name your classifier clf for easy export below.
-### Note that if you want to do PCA or other multi-stage operations,
-### you'll need to use Pipelines. For more info:
-### http://scikit-learn.org/stable/modules/pipeline.html
 
-def try_classifier(classifier, print_accuracy=False):
+def select_features():
+    selector = SelectKBest()
+    selector.fit(features, labels)
+    zipped = zip(info()[1:], selector.scores_)
+    zipped.sort(key= lambda x:x[1], reverse=True)
+    for f, s in zipped:
+        print f,'->score:', s
+    return
+
+#select_features()
+
+# Task 4: Try a varity of classifiers
+# Please name your classifier clf for easy export below.
+# Note that if you want to do PCA or other multi-stage operations,
+# you'll need to use Pipelines. For more info:
+# http://scikit-learn.org/stable/modules/pipeline.html
+
+def try_classifier(selector, classifier, X=features, y=labels, print_accuracy=False):
     #create pipeline
-    model = Pipeline([('select_features',selector),('classify', classifier)])
+    model = Pipeline([('select_features',selector), ('classify', classifier)])
     #evaluate pipeline
     kfold = KFold(len(labels), n_folds=10, random_state=9)
-    scores = cross_val_score(model, features, labels, cv=kfold)
+    scores = cross_val_score(model, X, y, cv=kfold)
     if print_accuracy:
         print 'Accuracy of %s: %0.2f (+/- %0.2f)' % (classifier, scores.mean(), scores.std() *2)
     return model
 
 
-classifiers = [GaussianNB(), DecisionTreeClassifier(), RandomForestClassifier()]
+#classifiers = [GaussianNB(), DecisionTreeClassifier(), RandomForestClassifier()]
 #for classifier in classifiers:
-    #try_classifier(classifier)
+    #try_classifier(SelectKBest(), classifier, print_accuracy=True)
 
 
 # Task 5: Tune your classifier to achieve better than .3 precision and recall using our testing script.
@@ -163,13 +171,8 @@ params_dt = {'classify__criterion':['gini', 'entropy'],'classify__splitter':['be
 params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['gini', 'entropy'],
               'classify__min_samples_split':[2,3,4,5,10]}
 
-#http://scikit-learn.org/stable/auto_examples/model_selection/grid_search_text_feature_extraction.html
-#note about cross validation in gridsearchcv: cv param: For integer/None inputs, if the estimator is a classifier and y
-#  is either binary or multiclass, StratifiedKFold is used. In all other cases, KFold is used. --> so in my case
-#StratifiedKFold is used.
 
-
-def tune(classifier, print_workflow=False, print_best=False):
+def tune(selector, classifier, X=features, y=labels, print_workflow=False, print_best=False):
     if isinstance(classifier, GaussianNB):
         parameters = dict(param_KBest)
     elif isinstance(classifier, DecisionTreeClassifier):
@@ -181,38 +184,39 @@ def tune(classifier, print_workflow=False, print_best=False):
     else:
         'The dictionary for this dictionary hasn"t been defined!'
 
-
     if print_workflow:
-        grid_search = GridSearchCV(try_classifier(classifier), parameters, verbose=1)
+        grid_search = GridSearchCV(try_classifier(selector, classifier, X, y), parameters, verbose=1)
         print "Performing grid search..."
-        print "pipeline:", [name for name, _ in try_classifier(classifier).steps]
+        print "pipeline:", [name for name, _ in try_classifier(selector, classifier, X, y).steps]
         print "parameters:"
         pprint(parameters)
         t0 = time()
-        grid_search.fit(features, labels)
+        grid_search.fit(X, y)
         print "done in %0.3fs" % (time() - t0)
         print
     else:
-        grid_search = GridSearchCV(try_classifier(classifier), parameters)
-        grid_search.fit(features, labels)
+        grid_search = GridSearchCV(try_classifier(selector, classifier, X, y), parameters)
+        grid_search.fit(X, y)
     if print_best:
         print "Best score: %0.3f" % grid_search.best_score_
         print "Best parameters set:"
         best_parameters = grid_search.best_estimator_.get_params()
         for param_name in sorted(parameters.keys()):
             print "\t%s: %r" % (param_name, best_parameters[param_name])
-    return grid_search.fit(features, labels)
+    return grid_search.fit(X, y)
+
+#tune(SelectKBest(), RandomForestClassifier(), print_best=True)
 
 
-
-# Example starting point. Try investigating other evaluation techniques!
-from sklearn.cross_validation import train_test_split
+# Task 6: evaluation metrics
 features_train, features_test, labels_train, labels_test = \
-    train_test_split(features, labels, test_size=0.3, random_state=42)
+train_test_split(features, labels, test_size=0.3, random_state=42)
+pln=try_classifier(SelectKBest(k=7), RandomForestClassifier(n_estimators=10, criterion='gini', min_samples_split=3))
+clf = pln.fit(features_train, labels_train)
+print classification_report(labels_test, clf.predict(features_test))
+# Task 7: Dump your classifier, dataset, and features_list so anyone can
+# check your results. You do not need to change anything below, but make sure
+# that the version of poi_id.py that you submit can be run on its own and
+# generates the necessary .pkl files for validating your results.
 
-### Task 6: Dump your classifier, dataset, and features_list so anyone can
-### check your results. You do not need to change anything below, but make sure
-### that the version of poi_id.py that you submit can be run on its own and
-### generates the necessary .pkl files for validating your results.
-
-#dump_classifier_and_data(clf, my_dataset, features_list)
+dump_classifier_and_data(clf, my_dataset, features_list)
