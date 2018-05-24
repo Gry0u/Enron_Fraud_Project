@@ -18,30 +18,87 @@ sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 
+# Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-
-### Task 1: Select what features you'll use.
-### features_list is a list of strings, each of which is a feature name.
-### The first feature must be "poi".
-features_list = ['poi','salary'] # You will need to use more features
-##I am defining a dataframe because I found it convenient/fast to get all the features names
-data_df = pd.DataFrame(data_dict)
-data_df = data_df.transpose()
-features_name_list=[col for col in data_df.columns if col not in ['email_address','poi']]
-features_name_list=['poi']+features_name_list
-### Load the dictionary containing the dataset
-with open("final_project_dataset.pkl", "r") as data_file:
-    data_dict = pickle.load(data_file)
+# Task 1: Select what features you'll use.
+# features_list is a list of strings, each of which is a feature name.
+# The first feature must be "poi".
 
 
-### Task 2: Remove outliers
+def info(details=None):
+    """
+    Prints depending on details parameter:
+     - the features in the dataset.
+     - value of all features for a selected person
+     - values types details
+     - dataset statistics
+
+    :param details:
+        - person name in the form [LASTNAME FIRSTNAME (MIDDLENAME INITIAL)]
+        - or value from ['all, 'poi, 'non_poi] to get values types details
+        - or 'features' to list features alphabetically
+        - or 'stats' to get stats on all features
+    :return: list of features names
+    """
+    #create dataframe
+    data_df = pd.DataFrame(data_dict)
+    data_df = data_df.transpose()
+
+    #list features
+    features_name_list = []
+    features_name_list = [col for col in data_df.columns if col not in ['email_address', 'poi']]
+    features_name_list = ['poi'] + features_name_list
+    #force values types
+    numeric_features = [col for col in data_df.columns if col not in ['poi', 'email_address']]
+    for col in numeric_features:
+        data_df[col] = data_df[col].apply(lambda c: pd.to_numeric(c, errors='coerce'))
+
+    if details == 'all':
+        pprint(data_df.info(verbose=True))
+        #in this case the features are already counted and listed by .info()
+        list_features = False
+        number_features = False
+    elif details == 'poi':
+        pprint(data_df[data_df['poi'] == True].info(verbose=True))
+        list_features = False
+        number_features = False
+    elif details =='non_poi':
+        pprint(data_df[data_df['poi'] == False].info(verbose=True))
+        list_features = False
+        number_features = False
+    elif details in data_dict.keys():
+        pprint(my_dataset[person])
+    elif details == 'features':
+        print'features:'
+        pprint(sorted([feature for feature in features_name_list if feature != 'poi']))
+        print
+        print 'number of features:', len([feature for feature in features_name_list if feature != 'poi'])
+    elif details == 'stats':
+        print data_df.describe()
+    elif details is None:
+        pass
+    else:
+        'the "details" parameter can take only the followings values:"[PERSON NAME], "features","all", "poi", "non_poi", "stats'
+    return features_name_list
+
+
+#info(details='poi')
+#info(details='non_poi')
+#info(details='all')
+#info('ALLEN PHILLIP K')
+#info(details='stats')
+
+features_list = info()
+
+
+# Task 2: Remove outliers
 data_dict.pop('TOTAL',0)
 data_dict.pop('THE TRAVEL AGENCY IN THE PARK')
 
-### Task 3: Create new feature(s)
-### Store to my_dataset for easy export below.
+# Task 3: Create new feature(s)
+# Store to my_dataset for easy export below.
 my_dataset = data_dict
 
 #add new features & convert negative values to positive
@@ -60,39 +117,15 @@ for person, features_person in my_dataset.iteritems():
         features_person['ratio_from_this_person_to_poi'] = 'NaN'
     else:
         features_person['ratio_from_this_person_to_poi'] = float(to_poi) / float(to_)
-    if features_person['deferred_income'] != 'NaN':
-        features_person['deferred_income'] = abs(features_person['deferred_income'])
-       # print person, deferred_income
-    if features_person['restricted_stock_deferred'] != 'NaN':
-        features_person['restricted_stock_deferred'] = abs(features_person['restricted_stock_deferred'])
 
 #add created features to the features list
-features_name_list = features_name_list + ['ratio_from_this_person_to_poi', 'ratio_from_poi_to_this_person']
+features_list = features_list + ['ratio_from_this_person_to_poi', 'ratio_from_poi_to_this_person']
 
-
-def dataset_info(person=None, list_features=True, number_features=True):
-    if type(person) == str:
-        #visualize one data point:
-        pprint(my_dataset[person])
-        print
-    if list_features:
-        # print sorted features to be able to identify them when they will be stored in a ndarray
-        print'features:'
-        pprint(sorted([feature for feature in features_name_list if feature != 'poi']))
-        print
-    if number_features:
-        print 'number of features:', len([feature for feature in features_name_list if feature != 'poi'])
-    return
-
-
-#dataset_info()
-
-### Extract features and labels from dataset for local testing
-data = featureFormat(my_dataset, features_name_list, sort_keys=True)
+# Extract features and labels from dataset for local testing
+data = featureFormat(my_dataset, features_list, sort_keys=True)
 labels, features = targetFeatureSplit(data)
 
-#print 'Number of features: ', len(features[0])
-#Select best features from 19
+#Select best features from 21
 selector = SelectKBest()
 selector.fit(features, labels)
 #print selector.scores_
@@ -124,7 +157,7 @@ classifiers = [GaussianNB(), DecisionTreeClassifier(), RandomForestClassifier()]
 # test_classifier function. Because of the small size of the dataset, the script uses stratified shuffle split
 # cross validation. For more info:
 # http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
-param_KBest = {'select_features__score_func':[f_classif, chi2],'select_features__k':[3, 4, 5, 6, 7, 8, 9, 10]}
+param_KBest = {'select_features__score_func':[f_classif],'select_features__k':[3, 4, 5, 6, 7, 8, 9, 10]}
 params_dt = {'classify__criterion':['gini', 'entropy'],'classify__splitter':['best', 'random'],
              'classify__min_samples_split':[2, 3, 4, 5, 10]}
 params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['gini', 'entropy'],
@@ -135,7 +168,8 @@ params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['g
 #  is either binary or multiclass, StratifiedKFold is used. In all other cases, KFold is used. --> so in my case
 #StratifiedKFold is used.
 
-def tune(classifier, print_best=False):
+
+def tune(classifier, print_workflow=False, print_best=False):
     if isinstance(classifier, GaussianNB):
         parameters = dict(param_KBest)
     elif isinstance(classifier, DecisionTreeClassifier):
@@ -147,16 +181,21 @@ def tune(classifier, print_best=False):
     else:
         'The dictionary for this dictionary hasn"t been defined!'
 
-    grid_search = GridSearchCV(try_classifier(classifier), parameters, verbose=1)
-    print "Performing grid search..."
-    print "pipeline:", [name for name, _ in try_classifier(classifier).steps]
-    print "parameters:"
-    pprint(parameters)
-    t0 = time()
-    grid_search.fit(features, labels)
-    print "done in %0.3fs" % (time() - t0)
-    if print_best:
+
+    if print_workflow:
+        grid_search = GridSearchCV(try_classifier(classifier), parameters, verbose=1)
+        print "Performing grid search..."
+        print "pipeline:", [name for name, _ in try_classifier(classifier).steps]
+        print "parameters:"
+        pprint(parameters)
+        t0 = time()
+        grid_search.fit(features, labels)
+        print "done in %0.3fs" % (time() - t0)
         print
+    else:
+        grid_search = GridSearchCV(try_classifier(classifier), parameters)
+        grid_search.fit(features, labels)
+    if print_best:
         print "Best score: %0.3f" % grid_search.best_score_
         print "Best parameters set:"
         best_parameters = grid_search.best_estimator_.get_params()
@@ -165,7 +204,6 @@ def tune(classifier, print_best=False):
     return grid_search.fit(features, labels)
 
 
-#tune(DecisionTreeClassifier())
 
 # Example starting point. Try investigating other evaluation techniques!
 from sklearn.cross_validation import train_test_split
@@ -177,4 +215,4 @@ features_train, features_test, labels_train, labels_test = \
 ### that the version of poi_id.py that you submit can be run on its own and
 ### generates the necessary .pkl files for validating your results.
 
-dump_classifier_and_data(clf, my_dataset, features_list)
+#dump_classifier_and_data(clf, my_dataset, features_list)
