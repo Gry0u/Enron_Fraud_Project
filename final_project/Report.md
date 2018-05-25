@@ -25,23 +25,23 @@ A person of interest is defined as a person who fulfills one the following condi
 The data was built in combining the **Enron Email Dataset**, the **Enron 
 statement of financial affairs**, and a **initial list of POIs**.  
 
-###Enron Data Set 
+### Enron Data Set 
  The [Enron Email Dataset](https://www.cs.cmu.edu/~./enron/) was collected and prepared by
   the CALO Project (A Cognitive Assistant that Learns and Organizes). 
 It contains data from about 150 users, mostly senior management of Enron, 
 organized into folders. The corpus contains a total of about 0.5M messages. 
 This data was originally made public, and posted to the web, by the Federal Energy Regulatory 
 Commission during its investigation.  
-###Enron statemment of financial affairs
+### Enron statemment of financial affairs
 The [Enron statement of financial affairs](http://news.findlaw.com/hdocs/docs/enron/enron61702insiderpay.pdf)
 consists in a pdf report including financial information such as salary, bonus received, 
 exercised stock options...for different Enron employees. This pdf was parsed using a script
 available in the udacity teaching materials
-###Inital list of persons of interest
+### Inital list of persons of interest
 This list is part of the udacity teaching resources. It was populated thanks to reading news. Note 
 that it lists persons who were employees at Enron and some who were not.
 
-###Preprocessing
+### Preprocessing
 As preprocessing to this project, Udacity combined the Enron email and 
 financial data into a dictionary, where each key-value pair in the dictionary
 corresponds to one person. The dictionary key is the person's name, and the
@@ -100,7 +100,7 @@ difficulties to spot.
 Therefore the classifier will hopefully be able to make much better and faster 
 predictions.
 
-####Data Exploration
+#### Data Exploration
 Thanks to the [info](./poi_id.py) function, I learnt for instance that there
 are:
 - 18 POIs in the dataset
@@ -112,14 +112,14 @@ are:
     - 65 have a non-null 'salary' value
     - 77 have a non-null 'bonus' value 
 
-####Outliers
+#### Outliers
 Thanks to the max statistics returned by *info(details='stats')*, I could easily spot outliers.  Indeed the financial 
 statements pdf includes a 'TOTAL' line. Therefore a corresponding training
 point exists in the dataset. It has to be removed from the dictionary.  
 I removed an another point which is not a person: "the travel agency in the
 park" (also easily spot because this line is just above the last line 
 'TOTAL' in the pdf).
-##Question 2
+## Question 2
 **What features did you end up using in your POI identifier, and what selection
 process did you use to pick them? Did you have to do any scaling? Why or why not?
  As part of the assignment, you should attempt to engineer your own feature that
@@ -160,7 +160,7 @@ deferred_income ->score: 11.4584765793
 long_term_incentive ->score: 9.92218601319
 ratio_from_poi_to_this_person ->score: 9.21281062198
 
-#####Comments on the *f_classif* function:  
+##### Comments on the *f_classif* function:  
 See [sklearn doc](http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.f_classif.html#sklearn.feature_selection.f_classif)
 and [explanation of ANOVA & F-test.](http://blog.minitab.com/blog/adventures-in-statistics-2/understanding-analysis-of-variance-anova-and-the-f-test)
 *f_classif* computes the ANOVA F-value for the provided sample.  
@@ -207,7 +207,7 @@ Accuracy of RandomForestClassifier(bootstrap=True, class_weight=None, criterion=
             oob_score=False, random_state=None, verbose=0,
             warm_start=False): **0.85 (+/- 0.16)**  
 
-##Question 4
+## Question 4
 **What does it mean to tune the parameters of an algorithm, and what can happen if you don’t
  do this well?  How did you tune the parameters of your particular algorithm? 
  What parameters did you tune? (Some algorithms do not have parameters that you need to tune
@@ -250,7 +250,7 @@ Best parameters set:
 	select_features__k: 7  
 	select_features__score_func: <function f_classif at 0x05724630>  
 
-##Question 5
+## Question 5
 **What is validation, and what’s a classic mistake you can make if you do it wrong? 
 How did you validate your analysis?**    
 [relevant rubric items: “discuss validation”, “validation strategy”]  
@@ -264,7 +264,7 @@ In all other cases, KFold is used.
 >
 So in my case KFold was used: k learning experiments using k different train/test sets were run. Then the test results were averaged.
 
-##Question 6
+## Question 6
 **Give at least 2 evaluation metrics and your average performance for each of them.  
 Explain an interpretation of your metrics that says something human-understandable about your 
 algorithm’s performance.**  
