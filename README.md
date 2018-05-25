@@ -1,4 +1,4 @@
-ud120-projects
+Project: Identify Fraud from Enron Email
 ==============
 
 Includes:
