@@ -221,9 +221,9 @@ Accuracy of RandomForestClassifier(bootstrap=True, class_weight=None, criterion=
 Tuning the parameters of an algorithm is all about finding the right spot between Bias and Variance in order to have
 the best model possible.  Algorithm parameters can influence their bias and/or variance.  
 A high bias means that my model is oversimplified and doesn't pay attention to data --> can happen if I select a value
-small for the k parameter in SelectKBest.  
+too small for the k parameter in SelectKBest.  
 A high variance means the opposite, that my model pays too much attention to data or is overfitted --> can happen if my 
-algorithm is too optimzed: e.g. too many nodes (min_samples_split too small).     
+algorithm is too optimzed: e.g. too many nodes (min_samples_split parameter too small).     
 At first I wanted to play also with the f_score function parameter of SelectKBest and consider both chi2 and f_classif, 
 but there are some negative values among the financial features (e.g. *deferred_income*, *restricted_stock_deferred*).
 So in the end I did not consider chi2 to avoid having to convert these features to positive 
