@@ -162,13 +162,15 @@ ratio_from_poi_to_this_person ->score: 9.21281062198
 
 ##### Comments on the *f_classif* function:  
 See [sklearn doc](http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.f_classif.html#sklearn.feature_selection.f_classif)
-and [explanation of ANOVA & F-test.](http://blog.minitab.com/blog/adventures-in-statistics-2/understanding-analysis-of-variance-anova-and-the-f-test)
+and [explanation of ANOVA & F-test.](http://blog.minitab.com/blog/adventures-in-statistics-2/understanding-analysis-of-variance-anova-and-the-f-test)  
 *f_classif* computes the ANOVA F-value for the provided sample.  
 ANOVA uses the F-test to determine whether the variability between group means is larger than the variability of the 
-observations within the groups. If that ratio is sufficiently large, you can conclude that not all the means are equal.  
+observations within the groups. If that ratio is sufficiently large, one can
+conclude that not all the means are equal.  
 So it is a way to measure a feature’s relation to the response variable.  
-The higher the F-statistic , the more different the group means, the more powerful the feature.   
-##Question 3
+The higher the F-statistic , the more different the group means, the more "powerful"
+the feature.   
+## Question 3
 **What algorithm did you end up using? What other one(s) did you try? How did 
 model performance differ between algorithms?**  
 [relevant rubric item: “pick an algorithm”]  
