@@ -152,13 +152,13 @@ I will also recreate the 2 features that we discussed within the course:
 - ratio of from_this_person_to_poi over to_messages, noted *ratio_from_this_person_to_poi*
 
 The function *select_features* indicates me that the 7 features with the biggest scores (the most "powerful") are:
->exercised_stock_options ->score: 24.8150797332
-to_messages ->score: 24.1828986786
-bonus ->score: 20.7922520472
-restricted_stock ->score: 18.2896840434
-deferred_income ->score: 11.4584765793
-long_term_incentive ->score: 9.92218601319
-ratio_from_poi_to_this_person ->score: 9.21281062198
+>exercised_stock_options ->score: 24.8150797332  
+to_messages ->score: 24.1828986786  
+bonus ->score: 20.7922520472  
+restricted_stock ->score: 18.2896840434  
+deferred_income ->score: 11.4584765793  
+long_term_incentive ->score: 9.92218601319  
+ratio_from_poi_to_this_person ->score: 9.21281062198  
 
 ##### Comments on the *f_classif* function:  
 See [sklearn doc](http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.f_classif.html#sklearn.feature_selection.f_classif)
