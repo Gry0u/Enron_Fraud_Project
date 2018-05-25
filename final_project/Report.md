@@ -160,7 +160,7 @@ deferred_income ->score: 11.4584765793
 long_term_incentive ->score: 9.92218601319  
 ratio_from_poi_to_this_person ->score: 9.21281062198  
 
-##### Comments on the *f_classif* function:  
+#### Comments on the *f_classif* function:  
 See [sklearn doc](http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.f_classif.html#sklearn.feature_selection.f_classif)
 and [explanation of ANOVA & F-test.](http://blog.minitab.com/blog/adventures-in-statistics-2/understanding-analysis-of-variance-anova-and-the-f-test)  
 *f_classif* computes the ANOVA F-value for the provided sample.  
