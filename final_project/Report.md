@@ -238,10 +238,11 @@ I finally tuned the following parameters:
 -Random Forest
     - criterion
     - min samples split
-    - number of trees (n_estimators)
+    - number of trees (n_estimators)  
+    
 I performed this tuning using *GridSearchCV* (see *tune* function).  
 I largely inspired myself from this [code](http://scikit-learn.org/stable/auto_examples/model_selection/grid_search_text_feature_extraction.html)
-from the sklearn documentation to build my function. 
+from the sklearn documentation to build my function [tune](./poi_id.py). 
 Here are the best score and best parameters set after tuning the random
 forest algorithm: 
 >Best score: 0.881  
