@@ -54,7 +54,7 @@ dictionary into numpy arrays. It offers the possibility to convert 'NaN'
 values into null values, and then remove those null values.  It also sorts
 alphabetically the features (see function docstring).  
 The [targetFeatureSplit](../tools/feature_format.py) function splits the 
-array returned from [featureFormat](../tools/feature_format.py)into 2 
+array returned from [featureFormat](../tools/feature_format.py) into 2 
 separate lists of features and labels.  
  
 So for instance, here are the features for the first data point/person 
