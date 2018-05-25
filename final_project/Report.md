@@ -151,7 +151,7 @@ I will also recreate the 2 features that we discussed within the course:
 - ratio of from_poi_to_this_person over from_messages, noted *ratio_from_poi_to_this_person*
 - ratio of from_this_person_to_poi over to_messages, noted *ratio_from_this_person_to_poi*
 
-The function *select_features* indicates me that 7 features with the biggest scores (the most "powerful") are:
+The function *select_features* indicates me that the 7 features with the biggest scores (the most "powerful") are:
 >exercised_stock_options ->score: 24.8150797332
 to_messages ->score: 24.1828986786
 bonus ->score: 20.7922520472
