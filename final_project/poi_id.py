@@ -120,6 +120,28 @@ for person, features_person in my_dataset.iteritems():
 #add created features to the features list
 features_list = features_list + ['ratio_from_this_person_to_poi', 'ratio_from_poi_to_this_person']
 
+### Impute missing email features to mean
+email_features = ['to_messages', 'from_poi_to_this_person', 'ratio_from_poi_to_this_person', 'from_messages',
+                  'from_this_person_to_poi','ratio_from_this_person_to_poi', 'shared_receipt_with_poi']
+from collections import defaultdict
+email_feature_sums = defaultdict(lambda:0)
+email_feature_counts = defaultdict(lambda:0)
+
+for employee, features in data_dict.iteritems():
+    for ef in email_features:
+        if features[ef] != "NaN":
+            email_feature_sums[ef] += features[ef]
+            email_feature_counts[ef] += 1
+
+email_feature_means = {}
+for ef in email_features:
+    email_feature_means[ef] = float(email_feature_sums[ef]) / float(email_feature_counts[ef])
+
+for employee, features in data_dict.iteritems():
+    for ef in email_features:
+        if features[ef] == "NaN":
+            features[ef] = email_feature_means[ef]
+
 # Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys=True)
 labels, features = targetFeatureSplit(data)
@@ -165,7 +187,7 @@ def try_classifier(selector, classifier, X=features, y=labels, print_accuracy=Fa
 # test_classifier function. Because of the small size of the dataset, the script uses stratified shuffle split
 # cross validation. For more info:
 # http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
-param_KBest = {'select_features__score_func':[f_classif],'select_features__k':[3, 4, 5, 6, 7, 8, 9, 10]}
+param_KBest = {'select_features__score_func':[f_classif],'select_features__k':[6, 7, 8, 9, 10, 11, 12, 13]}
 params_dt = {'classify__criterion':['gini', 'entropy'],'classify__splitter':['best', 'random'],
              'classify__min_samples_split':[2, 3, 4, 5, 10]}
 params_rdf = {'classify__n_estimators':[3,5,10,20,40], 'classify__criterion':['gini', 'entropy'],
@@ -211,9 +233,9 @@ def tune(selector, classifier, X=features, y=labels, print_workflow=False, print
 # Task 6: evaluation metrics
 features_train, features_test, labels_train, labels_test = \
 train_test_split(features, labels, test_size=0.3, random_state=42)
-pln=try_classifier(SelectKBest(k=7), RandomForestClassifier(n_estimators=10, criterion='gini', min_samples_split=3))
+pln=try_classifier(SelectKBest(k=5), RandomForestClassifier(n_estimators=10, criterion='entropy', min_samples_split=5))
 clf = pln.fit(features_train, labels_train)
-print classification_report(labels_test, clf.predict(features_test))
+#print classification_report(labels_test, clf.predict(features_test))
 # Task 7: Dump your classifier, dataset, and features_list so anyone can
 # check your results. You do not need to change anything below, but make sure
 # that the version of poi_id.py that you submit can be run on its own and
