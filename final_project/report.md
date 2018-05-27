@@ -150,15 +150,16 @@ importance, I use selectKBest.
 I will also recreate the 2 features that we discussed within the course:    
 - ratio of from_poi_to_this_person over from_messages, noted *ratio_from_poi_to_this_person*
 - ratio of from_this_person_to_poi over to_messages, noted *ratio_from_this_person_to_poi*
-
+- ratio of exercised_stock_options over total_stock_value noted *ratio_exercised_total_stock* ***(added after first
+review)***  
 The function *select_features* indicates me that the 7 features with the biggest scores (the most "powerful") are:
 >exercised_stock_options ->score: 24.8150797332  
-to_messages ->score: 24.1828986786  
+shared_receipt_with_poi ->score: 24.1828986786  
 bonus ->score: 20.7922520472  
-restricted_stock ->score: 18.2896840434  
+ratio_from_this_person_to_poi ->score: 18.2896840434  
 deferred_income ->score: 11.4584765793  
 long_term_incentive ->score: 9.92218601319  
-ratio_from_poi_to_this_person ->score: 9.21281062198  
+ratio_exercised_total_stock ->score: 9.21281062198  
 
 #### Comments on the *f_classif* function:  
 See [sklearn doc](http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.f_classif.html#sklearn.feature_selection.f_classif)
@@ -243,8 +244,8 @@ I finally tuned the following parameters:
 I performed this tuning using *GridSearchCV* (see *tune* function).  
 I largely inspired myself from this [code](http://scikit-learn.org/stable/auto_examples/model_selection/grid_search_text_feature_extraction.html)
 from the sklearn documentation to build my function [tune](./poi_id.py). 
-Here are the best score and best parameters set after tuning the random
-forest algorithm: 
+Here are for instance the best score and best parameters set after tuning the:
+ - random forest algorithm: 
 >Best score: 0.881  
 Best parameters set:  
 	classify__criterion: 'gini'  
@@ -252,6 +253,8 @@ Best parameters set:
 	classify__n_estimators: 10  
 	select_features__k: 7  
 	select_features__score_func: <function f_classif at 0x05724630>  
+	
+- Naive Bayes (only tuning of k for *SelectKBest*): 
 
 ## Question 5
 **What is validation, and what’s a classic mistake you can make if you do it wrong? 
@@ -265,22 +268,39 @@ As I used GridSearchCV, a cross validation technique was already applied. As exp
 For integer/None inputs, if the estimator is a classifier and y is either binary or multiclass, StratifiedKFold is used.
 In all other cases, KFold is used.
 >
-So in my case KFold was used: k learning experiments using k different train/test sets were run. Then the test results were averaged.
+So in my case, I haven't specified the parameter cv, so *StratifiedKFold* was used: k learning experiments using k
+different train/test sets are run. The folds are made by preserving the percentage of samples for each class, which
+ is appropriate for unbalanced (much more non POI than POI) classes. Then the test results were averaged.
 
 ## Question 6
 **Give at least 2 evaluation metrics and your average performance for each of them.  
 Explain an interpretation of your metrics that says something human-understandable about your 
 algorithm’s performance.**  
 [relevant rubric item: “usage of evaluation metrics”]  
+
+***Update after first review:  
+I selected first the RandomForest algorithm with the best parameters found at question 4. However when running the 
+[tester](./tester.py) function, I realized that although precision score was ok, I wouldn't get a
+recall score higher than 0.15/0.2.  
+So I decided to add one feature: ratio of 'exercised_stock_options' over 'total_stock_value'. And I selected the Naive
+Bayes algorithm instead of RandomForest.**  
  
-We usually consider precision and recall as evaulation metrics.
+We usually consider precision and recall as evaluation metrics.
 - precision: probability of a given prediction to be true. ie out of all predicted labels, how many were correct.
 - recall: probability of class to be correctly predicted. e.g. out of how of all predicted POI, how many are really POIs.
 Here are my metrics:
->
-               precision    recall  f1-score   support
+> precision    recall  f1-score   support
 
-          0.0       0.88      1.00      0.94        38
-          1.0       0.00      0.00      0.00         5
-    avg/total       0.78      0.88      0.83        43
+                      0.0       0.92      0.92      0.92        38
+                      1.0       0.40      0.40      0.40         5
+    avg / total       0.86      0.86      0.86        43
 >
+
+Outcome of *tester.py*:
+>Pipeline(steps=[('select_features', SelectKBest(k=13, score_func=<function f_classif at 0x059E2DB0>)),
+('classify', GaussianNB())])
+	Accuracy: 0.84420	Precision: 0.39719	Recall: 0.32550	F1: 0.35779	F2: 0.33769
+	Total predictions: 15000	True positives:  651	False positives:  988	False negatives: 1349	
+	True negatives: 12012  
+	
+So both precision and recall > 0.3.
